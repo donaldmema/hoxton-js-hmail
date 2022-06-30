@@ -12,6 +12,7 @@ type Email = {
 type State = {
   emails: Email[];
   emailOnDisplay: Email | null;
+  filter: string;
 };
 
 const state: State = {
@@ -82,34 +83,14 @@ const state: State = {
     },
   ],
   emailOnDisplay: null,
+  filter: "",
 };
 
-// function renderFiltering() {
-//   let inputEl = document.querySelector<HTMLInputElement>(".filter-input");
-//   if (!inputEl) return;
-//   inputEl.addEventListener("submit", () => {
-//     let input: string = inputEl.value;
-//     state.emails.filter((email) => {
-//       return email.from.includes(input);
-//     });
-//     render();
-//   });
-// }
+function displayEmailList(emailList: Email[]) {
+  let emailsList = document.querySelector(".emails-list");
+  if (!emailsList) return;
 
-function renderInboxList() {
-  let mainSection = document.querySelector("main");
-  if (!mainSection) return;
-  mainSection.textContent = "";
-
-  let inboxTitle = document.createElement("h1");
-  inboxTitle.textContent = "Inbox";
-
-  let emailsList = document.createElement("ul");
-  emailsList.className = "emails-list";
-
-  mainSection.append(inboxTitle, emailsList);
-
-  for (let email of state.emails) {
+  for (let email of emailList) {
     let emailItem = document.createElement("li");
     emailItem.addEventListener("click", () => {
       state.emailOnDisplay = email;
@@ -146,6 +127,22 @@ function renderInboxList() {
     emailItem.append(readIcon, profilePic, senderEl, contentEl);
     emailsList.append(emailItem);
   }
+}
+
+function renderInboxList() {
+  let mainSection = document.querySelector("main");
+  if (!mainSection) return;
+  mainSection.textContent = "";
+
+  let inboxTitle = document.createElement("h1");
+  inboxTitle.textContent = "Inbox";
+
+  let emailsList = document.createElement("ul");
+  emailsList.className = "emails-list";
+
+  mainSection.append(inboxTitle, emailsList);
+
+  displayEmailList(state.emails);
 }
 
 function renderMailItem() {
@@ -191,9 +188,43 @@ function renderMailItem() {
   mainSection.append(mailItemSection);
 }
 
+function renderFilteredEmails() {
+  let inputEl = document.querySelector<HTMLInputElement>(".filter-input");
+  if (!inputEl) return;
+
+  inputEl.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.key === "Enter") {
+      if (!inputEl) return;
+
+      state.filter = inputEl.value;
+      let filteredEmails = state.emails.filter((email) => {
+        return (
+          email.from.toLowerCase().includes(state.filter.toLowerCase()) ||
+          email.content.toLowerCase().includes(state.filter.toLowerCase())
+        );
+      });
+
+      let mainSection = document.querySelector("main");
+      if (!mainSection) return;
+      mainSection.textContent = "";
+
+      let inboxTitle = document.createElement("h1");
+      inboxTitle.textContent = "Inbox";
+
+      let emailsList = document.createElement("ul");
+      emailsList.className = "emails-list";
+
+      mainSection.append(inboxTitle, emailsList);
+
+      displayEmailList(filteredEmails);
+    }
+  });
+}
+
 function render() {
   renderInboxList();
   renderMailItem();
+  renderFilteredEmails();
 }
 
 render();
